@@ -219,6 +219,7 @@ void free_list(Node *head)
 }
 
 
+
 int main(int argc, char *argv[])
 {
     Node *head = NULL, *node = NULL;
@@ -335,3 +336,11 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+/*
+
+for(j=0; j<=25; j++)
+        {   
+            chi_sq = pow( (n * EF[offset(c)] - text_freq[offset(encode(c, shift))]), 2) /   (n * EF[offset(c)]);      
+        }
+
+*/

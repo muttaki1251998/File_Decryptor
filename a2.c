@@ -281,25 +281,46 @@ int offset(char letter)
 
 int decode_shift(char *string)
 {
-    double ef[26] = EF;
+    double EF[26] = _EF;
     int *text_freq = frequency_table(string);
     int n = letter_count(string);
-    int chi_sq;
+    int *chi_sq = malloc(sizeof(int) * 100);
     int shift=0, j=0;
     char c = 'a';
-    int encoded_value = 0;
     int first_temp = 0;
     int is_going = 0;
+
+    int i=0;
+    int x;
+
+    for(i=0; i<25; i++)
+    {
+        chi_sq[i] = 0;
+    }
+    printf("We inside decode\n");
 
     for(shift=0; shift<=25; shift++)
     {
         for(j=0; j<=25; j++)
         {   
-            encoded_value = (int)encode(c, shift);
-            chi_sq = (pow(n * ef[j] - text_freq[encoded_value], 2) / (n * ef[j]));
-            c++;            
-        }
+            x = pow( (n * EF[offset(c)] - text_freq[offset(encode(c, shift))]), 2) /   (n * EF[offset(c)]);
+            printf("X: %d, shift: %d \n", x, shift);            
+            chi_sq[shift] += x;
+            c++;      
+            }
+        c = 'a';
+        printf("%d: %d\n", shift, chi_sq[shift]);
+        
     }
+    
+
+    /*for(i=0; i<25; i++)
+    {
+        printf("%d\n", chi_sq[i]);
+    }*/
+
+     printf("We at the end decode\n");
+
 }
 
 int main(int argc, char *argv[])
@@ -416,15 +437,18 @@ int main(int argc, char *argv[])
         }   
         */
 
+        /*
         int _e = 0;
         char res[20];
 
         for(_e=0; new_string[_e] != '\0'; _e++)
         {
-            res[_e] = encode(new_string[_e], 2);   
+            res[_e] = encode(new_string[_e], 1);   
             printf("%c Offset is: %d\n", res[_e], offset(res[_e]));
             
         }
+        */
+        decode_shift(new_string);
        
     }
     
