@@ -169,8 +169,6 @@ int letter_count(char *letter)
         
     }
 
-    printf("\n%d\n", count);
-
     return count;
     
 }
@@ -218,7 +216,130 @@ void free_list(Node *head)
     }
 }
 
+char encode(char letter, int shift)
+{
+   
+    int i = 0;
+    int temp, upper_case, lower_case;
+    lower_case = letter - 'a';
+    upper_case = letter - 'A';
+    char res;
+    int new_shift = 0;    
 
+    if(lower_case >= MIN && lower_case < MAX)
+    {
+        if(shift > 0)
+        {
+            temp = ((lower_case + shift) % 26) + 97;
+        }
+        else if(shift < 0)
+        {
+            new_shift = shift + 26;
+            temp = ((lower_case + new_shift) % 26) + 97;
+        }
+        res = (char)temp;
+    }
+    else if(upper_case >= MIN && upper_case < MAX)
+    {   
+       if(shift > 0 )
+       {
+           temp = ((upper_case + shift) % 26) + 65;
+       }
+       else if(shift < 0)
+       {
+           new_shift = shift + 26;
+           temp = ((upper_case + new_shift) % 26) + 65;
+       }
+       res = (char)temp;
+    }
+    else
+    {
+        res = letter;
+    }    
+
+    return res;
+    
+}
+
+int offset(char letter)
+{
+    int _offset;
+
+    if(letter >= 'a' && letter <= 'z')
+    {
+        _offset = letter - 'a'; 
+    }
+    else if(letter >= 'A' && letter <= 'Z')
+    {
+        _offset = letter - 'A';
+    }
+
+    return _offset;
+}
+
+int encode_shift(char *string)
+{
+    double EF[26] = _EF;
+    int *text_freq = frequency_table(string);
+    int n = letter_count(string);
+    int *chi_sq = malloc(sizeof(int) * 26);
+    int shift=0, i=0, j=0, x;
+    char c = 'a';
+    int smallest_chi = 0;
+    int encoded_value;
+
+    for(i=0; i<25; i++)
+    {
+        chi_sq[i] = 0;
+    }
+    
+    for(shift=0; shift<=25; shift++)
+    {
+        for(j=0; j<=25; j++)
+        {   
+            x = pow( (n * EF[offset(c)] - text_freq[offset(encode(c, shift))]), 2) /   (n * EF[offset(c)]);
+            /* printf("X: %d, shift: %d \n", x, shift); */         
+            chi_sq[shift] += x;
+            c++;      
+        }
+        c = 'a';
+        printf("%d: %d\n", shift, chi_sq[shift]);        
+    }
+
+    for(i=0; i<26; i++)
+    {
+        if(chi_sq[i] < chi_sq[i+1])        
+            chi_sq[i+1] = chi_sq[i];           
+        else if(chi_sq[i] > chi_sq[i+1])        
+            chi_sq[i+1] = chi_sq[i+1];                   
+    }
+
+    smallest_chi = chi_sq[i];
+
+    printf("Lowest shift value is: %d\n", smallest_chi);
+
+    for(i=0; i<26; i++)
+    {
+        if(chi_sq[i] == smallest_chi)
+        {
+            printf("%d\n", i);
+            break;
+        }
+        
+    }
+
+    encoded_value = i;
+
+    return encoded_value;
+
+}
+
+int to_decode(int shift)
+{
+    int decode_shift = 26 - shift;
+
+    return decode_shift;
+}
 
 int main(int argc, char *argv[])
 {
@@ -269,22 +390,8 @@ int main(int argc, char *argv[])
             free_list(node);
             fclose(fp);
 
-            printf("Number of letters in the file is %d\n", letter_count(new_string));
-            int *arr = frequency_table(new_string);
-
-            int al=0;
-            int alphabet = 65;
-
-            for(al=0; al<=25; al++)
-            {           
-                printf("%c \t = \t %d\n", alphabet, arr[al]);
-                alphabet++;
-            }
-
-            if(arr != NULL)
-            {
-                free(arr);
-            }              
+            encode_shift(new_string);
+                          
 
         }
    
@@ -315,6 +422,7 @@ int main(int argc, char *argv[])
         node = head;
         free_list(node);  
 
+        /* Addons from Q1
         printf("Number of letter is %d\n", letter_count(new_string));
         int *arr = frequency_table(new_string);
 
@@ -330,17 +438,25 @@ int main(int argc, char *argv[])
         if(arr != NULL)
         {
             free(arr);
-        }     
+        }   
+        */
+
+        /*
+        int _e = 0;
+        char res[20];
+
+        for(_e=0; new_string[_e] != '\0'; _e++)
+        {
+            res[_e] = encode(new_string[_e], 1);   
+            printf("%c Offset is: %d\n", res[_e], offset(res[_e]));
+            
+        }
+        */
+        encode_shift(new_string);
+       
     }
-   
+    
+    
     return 0;
 }
 
-/*
-
-for(j=0; j<=25; j++)
-        {   
-            chi_sq = pow( (n * EF[offset(c)] - text_freq[offset(encode(c, shift))]), 2) /   (n * EF[offset(c)]);      
-        }
-
-*/
