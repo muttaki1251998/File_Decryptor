@@ -280,7 +280,7 @@ int encode_shift(char *string)
     double EF[26] = _EF;
     int *text_freq = frequency_table(string);
     int n = letter_count(string);
-    float *chi_sq = malloc(sizeof(int) * 26);
+    float chi_sq[26];
     int shift=0, i=0, j=0, k;
     char c = 'a';
     float smallest_chi, smallest_chi_shift;
@@ -298,8 +298,7 @@ int encode_shift(char *string)
             chi_sq[shift] += pow( (n * EF[offset(c)] - text_freq[offset(encode(c, shift))]), 2) /   (n * n * EF[offset(c)]);       
             c++;      
         }
-        c = 'a';
-        printf("%d: %f\n", shift, chi_sq[shift]);        
+        c = 'a';       
     }
 
     smallest_chi = chi_sq[0];
@@ -320,10 +319,35 @@ int encode_shift(char *string)
     {
         encoded_value = 0;
     }
-    
-    printf("%d\n", encoded_value);
+
     return encoded_value;
 
+}
+
+void print_chi_vals(char *string)
+{
+    double EF[26] = _EF;
+    int *text_freq = frequency_table(string);
+    int n = letter_count(string);
+    float chi_sq[26];
+    int shift=0, i=0, k=0;
+    char c = 'a';    
+
+    for(i=0; i<25; i++)
+    {
+        chi_sq[i] = 0.0;
+    }
+    
+    for(shift=0; shift<=25; shift++)
+    {
+        for(k=0; k<=25; k++)
+        {   
+            chi_sq[shift] += pow( (n * EF[offset(c)] - text_freq[offset(encode(c, shift))]), 2) /   (n * n * EF[offset(c)]);       
+            c++;      
+        }
+        c = 'a';
+        printf("%d: %f\n", shift, chi_sq[shift]);        
+    }
 }
 
 int to_decode(int shift)
@@ -334,30 +358,29 @@ int to_decode(int shift)
 }
 
 
-void write_file(FILE *fp, int decode_shift, char *file_name, char *file_contents, int _encoded_shift, int string_size)
+char *decoded_string(char *string, int shift, int file_size)
 {
+    char *decoded_string  = malloc(sizeof(char) * file_size);
     int i = 0;
-    int decode_value = 0;
-    char *decoded_string = malloc(sizeof(string_size));
-    fp = fopen(file_name, "w+");
 
-    if(fp == NULL)
+    for(i=0; i<strlen(string); i++)
     {
-        printf("Cannot write to file\n");
+        decoded_string[i] = encode(string[i], shift);
     }
-    else
+
+    return decoded_string;
+}
+
+void print_frequency_table(int *table)
+{
+    int alphabet  = 65;
+    int i = 0;
+
+    for(i=0; i<=25; i++)
     {
-        decode_value = to_decode(_encoded_shift);
-        printf("Decoded value:%d\n", decode_value);
-
-        for(i=0; i<strlen(file_contents); i++)
-        {
-            decoded_string[i] = encode(file_contents[i], decode_shift);            
-        }
-
-        fprintf(fp, "%s", decoded_string);
+        printf("%c \t = \t %d\n", alphabet, table[i]);
+        alphabet++;
     }
-    
 
 }
 
@@ -368,7 +391,9 @@ int main(int argc, char *argv[])
     int i = 0, j = 0;
     FILE *fp, *output_fp;
     char fc, oc;
-    int _encoded_shift, decoded_value;
+    int _encoded_shift, decoded_value, letters = 0;
+    char *main_string;
+    int *freq_table;
     if(argc > 10)
     {
         printf("Too many arguements\n");
@@ -491,17 +516,72 @@ int main(int argc, char *argv[])
             }
             new_string[i] = '\0';
             /* printf("Contents of the file is \n %s \n", new_string); */
-            encode_shift(new_string);
+            // encode_shift(new_string);
             node = head;
             free_list(node);
             fclose(fp);
+            int encode_val = encode_shift(new_string);
+            decoded_value = to_decode(encode_val);
+            // printf("To decode val: %d\n", decoded_value);
+            main_string = decoded_string(new_string, decoded_value, file_sz);
+            letters = letter_count(main_string);
+            freq_table = frequency_table(main_string);
+            
+            if(flag_O == OFF)
+            {   
+                if(flag_s == ON)
+                {
+                    printf("Decode shift: %d\n", decoded_value);
+                }
+                if(flag_S == ON)
+                {
+                    printf("Encode shift: %d\n", encode_val);
+                }
+                if(flag_t == ON)
+                {
+                    /* Print letter count */
+                    printf("Letter count: %d\n", letters);
+                    /* Print frequency table */
+                    print_frequency_table(freq_table);
+                }
+                if(flag_x == ON)
+                {
+                    print_chi_vals(new_string);
+                }
+
+                printf("%s\n", main_string);
+            }
+            else if(flag_O == ON)
+            {   
+                if(flag_s == ON)
+                {
+                    printf("Decode shift: %d\n", decoded_value);
+                }
+                if(flag_S == ON)
+                {
+                    printf("Encode shift: %d\n", encode_val);
+                }
+                if(flag_t == ON)
+                {
+                    /* Print letter count */
+                    printf("Letter count: %d\n", letters);
+                    /* Print frequency table */
+                    print_frequency_table(freq_table);
+                }
+                if(flag_x == ON)
+                {
+                    print_chi_vals(new_string);
+                }
+                output_fp = fopen(output_file, "w+");
+                fprintf(output_fp, "%s", main_string);
+
+                fclose(output_fp);
+            }
+            
+            
 
             
 
-            _encoded_shift = encode_shift(new_string);
-            decoded_value = to_decode(_encoded_shift);
-
-            write_file(fp, decoded_value, input_file, new_string, _encoded_shift, file_sz);
         }
     }
 
