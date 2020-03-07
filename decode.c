@@ -182,7 +182,7 @@ Node *add_input(Node *head, char string)
     return new_node;
         
 }
-
+  
 void reverse(Node **head_ref)
 {
     Node *prev = NULL;
@@ -192,11 +192,9 @@ void reverse(Node **head_ref)
     while(current != NULL)
     {
         next = current->next;
-
         /* Reverse the current node */
         current->next = prev;
-
-        /* Move pointers on position ahead */
+        /* Move pointers one position ahead */
         prev = current;
         current = next;
     }
@@ -282,54 +280,48 @@ int encode_shift(char *string)
     double EF[26] = _EF;
     int *text_freq = frequency_table(string);
     int n = letter_count(string);
-    int *chi_sq = malloc(sizeof(int) * 26);
-    int shift=0, i=0, j=0, x;
+    float *chi_sq = malloc(sizeof(int) * 26);
+    int shift=0, i=0, j=0, k;
     char c = 'a';
-    int smallest_chi = 0;
+    float smallest_chi, smallest_chi_shift;
     int encoded_value;
 
     for(i=0; i<25; i++)
     {
-        chi_sq[i] = 0;
+        chi_sq[i] = 0.0;
     }
     
     for(shift=0; shift<=25; shift++)
     {
-        for(j=0; j<=25; j++)
+        for(k=0; k<=25; k++)
         {   
-            x = pow( (n * EF[offset(c)] - text_freq[offset(encode(c, shift))]), 2) /   (n * EF[offset(c)]);
-            /* printf("X: %d, shift: %d \n", x, shift); */         
-            chi_sq[shift] += x;
+            chi_sq[shift] += pow( (n * EF[offset(c)] - text_freq[offset(encode(c, shift))]), 2) /   (n * n * EF[offset(c)]);       
             c++;      
         }
         c = 'a';
-        printf("%d: %d\n", shift, chi_sq[shift]);        
+        printf("%d: %f\n", shift, chi_sq[shift]);        
     }
 
-    for(i=0; i<26; i++)
+    smallest_chi = chi_sq[0];
+    for(i=1; i<=25; i++)
     {
-        if(chi_sq[i] < chi_sq[i+1])        
-            chi_sq[i+1] = chi_sq[i];           
-        else if(chi_sq[i] > chi_sq[i+1])        
-            chi_sq[i+1] = chi_sq[i+1];                   
-    }
-
-    smallest_chi = chi_sq[i];
-
-    printf("Lowest shift value is: %d\n", smallest_chi);
-
-    for(i=0; i<26; i++)
-    {
-        if(chi_sq[i] == smallest_chi)
+        if(smallest_chi > chi_sq[i])
         {
-            printf("%d\n", i);
-            break;
-        }
-        
+            smallest_chi = chi_sq[i];
+            smallest_chi_shift = i;
+        }         
     }
 
-    encoded_value = i;
-
+    if(smallest_chi <= 0.5)
+    {
+        encoded_value = smallest_chi_shift;
+    }
+    else
+    {
+        encoded_value = 0;
+    }
+    
+    printf("%d\n", encoded_value);
     return encoded_value;
 
 }
@@ -341,27 +333,141 @@ int to_decode(int shift)
     return decode_shift;
 }
 
+
+void write_file(FILE *fp, int decode_shift, char *file_name, char *file_contents, int _encoded_shift, int string_size)
+{
+    int i = 0;
+    int decode_value = 0;
+    char *decoded_string = malloc(sizeof(string_size));
+    fp = fopen(file_name, "w+");
+
+    if(fp == NULL)
+    {
+        printf("Cannot write to file\n");
+    }
+    else
+    {
+        decode_value = to_decode(_encoded_shift);
+        printf("Decoded value:%d\n", decode_value);
+
+        for(i=0; i<strlen(file_contents); i++)
+        {
+            decoded_string[i] = encode(file_contents[i], decode_shift);            
+        }
+
+        fprintf(fp, "%s", decoded_string);
+    }
+    
+
+}
+
 int main(int argc, char *argv[])
 {
     Node *head = NULL, *node = NULL;
-    int ch, input_sz = 0, file_sz = 0;    
-    int i = 0;
-    FILE *fp;
-    char fc;
-
-    if(argc == 3)
+    int ch, input_sz = 0, file_sz = 0, output_fz = 0;    
+    int i = 0, j = 0;
+    FILE *fp, *output_fp;
+    char fc, oc;
+    int _encoded_shift, decoded_value;
+    if(argc > 10)
     {
-        if(strcmp(argv[1], "-F") != 0)
-        {
-            fprintf(stderr, "Needs -F argument\n");
-            return 0;
-        }
+        printf("Too many arguements\n");
+    }
 
-        fp = fopen(argv[2], "r");
+    char *input_file = NULL;
+    char *output_file = NULL;
+    int flag_F = OFF, flag_O = OFF, flag_S = OFF, flag_s = OFF, flag_n = OFF, flag_x = OFF, flag_t = OFF;
+
+    for(i=1; i<argc; i++) 
+    {
+        if(argv[i][0] == '-')
+        {
+            j = 0;
+
+            while(argv[i][j] != '\0')
+            {
+                if(argv[i][j] == 'F' && flag_F == OFF)
+                {
+                    flag_F = ON;
+                    /* printf("-F present\n"); */
+                    input_file = malloc(sizeof(char) * strlen(argv[i+1]));
+                    /* printf("File name size: %ld\n", strlen(argv[i+1])); */
+                    strcpy(input_file, argv[i+1]);
+                    /* printf("Input file name: %s\n", input_file); */
+                }
+                if(argv[i][j] == 'O' && flag_O == OFF)
+                {
+                    flag_O = ON;
+                    /* printf("-O present\n"); */
+                    output_file = malloc(sizeof(char) * strlen(argv[i+1]));
+                    /* printf("File name size: %ld\n", strlen(argv[i+1])); */
+                    strcpy(output_file, argv[i+1]);
+                    /* printf("Output file name: %s\n", output_file); */
+                }
+                if(argv[i][j] == 'n' && flag_O == OFF && flag_n == OFF)
+                {
+                    flag_n = ON;
+                }
+                if(argv[i][j] == 's' && flag_s == OFF)
+                {
+                    flag_s = ON;
+                }
+                if(argv[i][j] == 'S' && flag_S == OFF)
+                {
+                    flag_S = ON;
+                }
+                if(argv[i][j] == 't' && flag_t == OFF)
+                {
+                    flag_t = ON;
+                }
+                if(argv[i][j] == 'x' && flag_x == OFF)
+                {
+                    flag_x = ON;
+                }
+
+                j++;
+            }
+        }
+    }
+
+    if(flag_F == OFF)
+    {
+
+        printf("Please enter a string for encoding\n");
+
+        while( (ch=getc(stdin)) != EOF)
+        {
+            input_sz++;
+            node = add_input(head, ch);
+            /* printf("%c\n", node->input_string); */
+            head = node; 
+        }
+        
+        char new_string[input_sz];
+        reverse(&node);
+
+        head = node;
+        while (node != NULL)
+        {
+            new_string[i] = node->input_string;
+            node = node->next;
+            i++;
+        }
+        new_string[i] = '\0';
+        encode_shift(new_string); 
+        node = head;
+        free_list(node); 
+
+    }
+    if(flag_F == ON)
+    {
+        i = 0;
+
+        fp = fopen(input_file, "r");
 
         if(fp == NULL)
         {
-            printf("Cannot open file %s\n", argv[2]);
+            printf("Cannot open file %s\n", input_file);
             exit(1);
         }
         else
@@ -385,77 +491,20 @@ int main(int argc, char *argv[])
             }
             new_string[i] = '\0';
             /* printf("Contents of the file is \n %s \n", new_string); */
-
+            encode_shift(new_string);
             node = head;
             free_list(node);
             fclose(fp);
 
-            encode_shift(new_string);
-                          
-
-        }
-   
-    }
-    else if(argc == 1)
-    {
-        printf("Please enter a string for encoding\n");
-
-        while( (ch=getc(stdin)) != EOF)
-        {
-            input_sz++;
-            node = add_input(head, ch);
-            /* printf("%c\n", node->input_string); */
-            head = node; 
-        }
-        
-        char new_string[input_sz];
-        reverse(&node);
-
-        head = node;
-        while (node != NULL)
-        {
-            new_string[i] = node->input_string;
-            node = node->next;
-            i++;
-        }
-        new_string[i] = '\0'; 
-        node = head;
-        free_list(node);  
-
-        /* Addons from Q1
-        printf("Number of letter is %d\n", letter_count(new_string));
-        int *arr = frequency_table(new_string);
-
-        int al=0;
-        int alphabet = 65;
-
-        for(al=0; al<=25; al++)
-        {           
-            printf("%c \t = \t %d\n", alphabet, arr[al]);
-            alphabet++;
-        }
-
-        if(arr != NULL)
-        {
-            free(arr);
-        }   
-        */
-
-        /*
-        int _e = 0;
-        char res[20];
-
-        for(_e=0; new_string[_e] != '\0'; _e++)
-        {
-            res[_e] = encode(new_string[_e], 1);   
-            printf("%c Offset is: %d\n", res[_e], offset(res[_e]));
             
+
+            _encoded_shift = encode_shift(new_string);
+            decoded_value = to_decode(_encoded_shift);
+
+            write_file(fp, decoded_value, input_file, new_string, _encoded_shift, file_sz);
         }
-        */
-        encode_shift(new_string);
-       
     }
-    
+
     
     return 0;
 }
