@@ -3,7 +3,6 @@
 char encode(char letter, int shift)
 {
    
-    int i = 0;
     int temp, upper_case, lower_case;
     lower_case = letter - 'a';
     upper_case = letter - 'A';

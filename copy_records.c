@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
     char *temp_string1, *temp_string2;
     int file_sz = 0;
 
+
     if(argc > 8)
     {
         printf("Too many arguments.\n");
@@ -60,7 +61,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    if(flag_F == ON && flag_O == ON && flag_r == OFF)
+    if(flag_F == ON && flag_O == ON)
     {
 
         i = 0;
@@ -129,7 +130,8 @@ int main(int argc, char *argv[])
                 fprintf(ofp, "%lf", rec.d_value[j]);       
             fprintf(ofp, "%s", temp_string2);
             for(j=0; j<12; j++)
-                fprintf(ofp, "%d", rec.int_value[j]);         
+                fprintf(ofp, "%d", rec.int_value[j]); 
+            fprintf(ofp, "\n");       
         }
 
     }
@@ -215,7 +217,7 @@ int main(int argc, char *argv[])
 
         if(text_fp == NULL)
         {
-            printf("Cannot open file\n");
+            printf("Cannot open file %s\n", encode_file);
             exit(1);
         } 
 
@@ -252,13 +254,7 @@ int main(int argc, char *argv[])
             num_records = f_size / sizeof(Records);
         }
 
-        /* printf("Number of records: %d\n", num_records); */
-        ofp = fopen(output_file, "w+");
-        if(ofp == NULL)
-        {
-            printf("Cannot open file\n");
-            exit(1);
-        }
+        
         j = 0;
         for(i=0; i<num_records; i++)
         {
@@ -275,7 +271,8 @@ int main(int argc, char *argv[])
                 fprintf(stdout, "%lf", rec.d_value[j]);       
             fprintf(stdout, "%s", temp_string2);
             for(j=0; j<12; j++)
-                fprintf(stdout, "%d", rec.int_value[j]);         
+                fprintf(stdout, "%d", rec.int_value[j]);    
+            fprintf(stdout, "\n");       
         }
     }
 

@@ -6,7 +6,7 @@ int encode_shift(char *string)
     int *text_freq = get_frequency_table(string);
     int n = letter_count(string);
     float chi_sq[26];
-    int shift=0, i=0, j=0, k;
+    int shift=0, i=0, k;
     char c = 'a';
     float smallest_chi, smallest_chi_shift;
     int encoded_value;
