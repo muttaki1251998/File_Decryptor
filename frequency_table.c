@@ -4,7 +4,7 @@
 int main(int argc, char *argv[])
 {
     Node *head = NULL, *node = NULL;
-    int ch, input_sz = 0, file_sz = 0;    
+    int ch, input_sz = 0, file_sz = 0, _character_count = 0;    
     int i = 0;
     FILE *fp;
     char fc;
@@ -50,7 +50,10 @@ int main(int argc, char *argv[])
             free_list(node);
             fclose(fp);
 
-            printf("Number of letters in the file is %d\n", letter_count(new_string));
+            _character_count = character_count(new_string);
+
+            printf("Number of letters are %d\n", letter_count(new_string));
+            printf("Number of characters: %d\n", _character_count);
             int *arr = get_frequency_table(new_string);
 
             int al=0;
@@ -96,7 +99,11 @@ int main(int argc, char *argv[])
         node = head;
         free_list(node);  
 
-        printf("Number of letter is %d\n", letter_count(new_string));
+        _character_count = character_count(new_string);
+
+        printf("Number of letters are %d\n", letter_count(new_string));
+        printf("Number of characters: %d\n", _character_count);
+
         int *arr = get_frequency_table(new_string);
 
         int al=0;
@@ -117,3 +124,22 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+int character_count(char *string)
+{
+    int count = 0;
+    int i = 0;
+
+    for(i=0; string[i] != '\0'; i++)
+    {
+        if( (string[i] > 96 && string[i] < 123) || (string[i] > 64 && string[i] < 91) || (string[i] >= 33 && string[i] <= 47))
+        {
+            count++;
+        }
+        else
+        {
+           count = count;
+        }
+        
+    }
+    return count;
+}
