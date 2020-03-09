@@ -10,6 +10,7 @@
 #define OFF 0
 #define ON 1
 
+
 typedef struct Lists
 {
     char input_string;
@@ -18,10 +19,27 @@ typedef struct Lists
 
 typedef struct BinFile
 {
-    char two_four[24];
+    char string1[24];
     double d_value[24];
-    char one_four[144];
-    int one_two[12];
+    char string2[144];
+    int int_value[12];
 } Records;
+
+
+
+Node *add_input(Node *head, char string);
+char *decoded_string(char *string, int shift, int file_size);
+int encode_shift(char *string);
+char encode(char letter, int shift);
+int file_size(FILE *fp);
+void free_list(Node *head);
+int *get_frequency_table(char *string);
+int letter_count(char *letter);
+int offset(char letter);
+void print_chi_vals(char *string);
+void print_frequency_table(int *table);
+void reverse(Node **head_ref);
+int to_decode(int shift);
+
 
 

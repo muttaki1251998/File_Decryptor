@@ -1,5 +1,0 @@
-1   Fred Weasly 22.5
-2   George Weasly 1.23
-3   Ron Weasly  34.6
-4   Harry Potter 3.56
-5   Sky Truong   
